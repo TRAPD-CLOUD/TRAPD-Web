@@ -182,6 +182,75 @@
   header.nav.scrolled .btn-ghost-light:hover { background: var(--accent); }
   header.nav.scrolled .btn-primary { background: var(--primary); color: var(--primary-foreground); }
 
+  /* ---- scroll progress bar (rides the bottom edge of the nav) ---- */
+  .nav-progress {
+    position: absolute; left: 0; bottom: -1px; height: 2px; width: 100%;
+    transform: scaleX(0); transform-origin: 0 50%;
+    background: var(--blue);
+    opacity: 0; transition: opacity .25s ease;
+    will-change: transform;
+  }
+  header.nav.scrolled .nav-progress { opacity: 1; }
+
+  /* ---- active nav link (scroll-spy underline) ---- */
+  .nav-links a { position: relative; }
+  .nav-links a::after {
+    content: ""; position: absolute; left: 13px; right: 13px; bottom: 3px; height: 2px;
+    background: var(--blue); border-radius: 2px;
+    transform: scaleX(0); transform-origin: 50% 50%; opacity: 0;
+    transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+  }
+  .nav-links a.active { color: #fff; }
+  .nav-links a.active::after { transform: scaleX(1); opacity: 1; }
+  header.nav.scrolled .nav-links a.active { color: var(--foreground); }
+
+  /* ---- mobile menu toggle (hamburger → X) ---- */
+  .nav-toggle {
+    display: none; margin-left: auto;
+    width: 42px; height: 42px; padding: 0; border: 0; background: transparent; cursor: pointer;
+    align-items: center; justify-content: center; color: #fafafa;
+    border-radius: var(--radius-md); transition: background .18s, color .18s;
+  }
+  .nav-toggle:hover { background: rgba(255,255,255,.08); }
+  header.nav.scrolled .nav-toggle { color: var(--foreground); }
+  header.nav.scrolled .nav-toggle:hover { background: var(--accent); }
+  .nav-toggle .bars { position: relative; width: 20px; height: 14px; }
+  .nav-toggle .bars span {
+    position: absolute; left: 0; width: 100%; height: 2px; background: currentColor; border-radius: 2px;
+    transition: transform .32s cubic-bezier(.4,0,.2,1), opacity .2s ease;
+  }
+  .nav-toggle .bars span:nth-child(1) { top: 0; }
+  .nav-toggle .bars span:nth-child(2) { top: 6px; }
+  .nav-toggle .bars span:nth-child(3) { top: 12px; }
+  body.menu-open .nav-toggle .bars span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  body.menu-open .nav-toggle .bars span:nth-child(2) { opacity: 0; }
+  body.menu-open .nav-toggle .bars span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  /* ---- mobile menu panel (slides down from the top) ---- */
+  .mobile-menu {
+    position: fixed; inset: 0 0 auto 0; z-index: 45;
+    background: var(--ink); color: #fafafa;
+    padding: 88px 28px 30px;
+    transform: translateY(-101%);
+    transition: transform .44s cubic-bezier(.4,0,.2,1);
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    box-shadow: 0 30px 60px -30px rgba(0,0,0,.8);
+    display: none; flex-direction: column;
+  }
+  body.menu-open .mobile-menu { transform: translateY(0); }
+  .mobile-menu a.mm-link {
+    font-size: 1.12rem; font-weight: 500; padding: 15px 2px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    color: rgba(255,255,255,.78); transition: color .15s, padding-left .25s ease;
+  }
+  .mobile-menu a.mm-link:hover, .mobile-menu a.mm-link.active { color: #fff; padding-left: 8px; }
+  .mobile-menu a.mm-link.active { color: var(--blue); }
+  .mm-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .mm-actions .btn { flex: 1 1 auto; justify-content: center; }
+
+  /* anchor targets clear the fixed header when jumped to */
+  [id] { scroll-margin-top: 84px; }
+
   /* ============================================================
      HERO
      ============================================================ */
@@ -399,6 +468,10 @@
   @media (prefers-reduced-motion: no-preference) {
     .js .reveal { opacity: 0; transform: translateY(20px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
     .js .reveal.in { opacity: 1; transform: none; }
+
+    /* staggered children — each direct child eases in just after the previous */
+    .js .stagger > * { opacity: 0; transform: translateY(20px); transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1); }
+    .js .stagger.in > * { opacity: 1; transform: none; }
   }
 
   /* responsive */
@@ -412,7 +485,9 @@
     .spot, .qs { grid-template-columns: 1fr; gap: 40px; }
     .tiers, .road { grid-template-columns: 1fr; }
     .panel-body { grid-template-columns: 1fr; }
-    .nav-links { display: none; }
+    .nav-links, .nav-right { display: none; }
+    .nav-toggle { display: inline-flex; }
+    .mobile-menu { display: flex; }
   }
   @media (max-width: 680px) {
     .pipe, .cap-grid, .int-grid { grid-template-columns: 1fr; }
@@ -449,8 +524,26 @@
       <a class="link" href="#">Sign in</a>
       <a class="btn btn-ghost-light btn-sm" href="#"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>Star on GitHub</a>
     </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+      <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
   </div>
+  <div class="nav-progress" id="navProgress" aria-hidden="true"></div>
 </header>
+
+<!-- ============================ MOBILE MENU ============================ -->
+<nav class="mobile-menu" id="mobileMenu" aria-label="Mobile">
+  <a class="mm-link" href="#platform">Platform</a>
+  <a class="mm-link" href="#capabilities">Capabilities</a>
+  <a class="mm-link" href="#principles">Principles</a>
+  <a class="mm-link" href="#integrations">Integrations</a>
+  <a class="mm-link" href="#roadmap">Roadmap</a>
+  <a class="mm-link" href="#">Docs</a>
+  <a class="mm-link" href="#">Sign in</a>
+  <div class="mm-actions">
+    <a class="btn btn-primary" href="#start">Star on GitHub</a>
+  </div>
+</nav>
 
 <!-- ============================ HERO ============================ -->
 <section class="hero band" id="top">
@@ -480,8 +573,8 @@
         <div class="panel-body">
           <div>
             <div class="kpi-row">
-              <div class="kpi"><div class="k">Events / min</div><div class="v">1,247</div><div class="d good">+12.4%</div></div>
-              <div class="kpi"><div class="k">Active alerts</div><div class="v">62</div><div class="d good">−8 vs 24h</div></div>
+              <div class="kpi"><div class="k">Events / min</div><div class="v" data-count="1247">1,247</div><div class="d good">+12.4%</div></div>
+              <div class="kpi"><div class="k">Active alerts</div><div class="v" data-count="62">62</div><div class="d good">−8 vs 24h</div></div>
               <div class="kpi"><div class="k">Time to triage</div><div class="v">4m 12s</div><div class="d good">−32s</div></div>
             </div>
             <div class="chart-card">
@@ -510,7 +603,7 @@
       <h2 class="h2">One pipeline for the whole security lifecycle.</h2>
       <p class="lead reading">Most tools cover a slice — an EDR here, a SIEM there, a SOAR bolted on top. TRAPD runs the full loop on a single, open data model, so a signal becomes a detection becomes a response without leaving the platform.</p>
     </div>
-    <div class="pipe reveal">
+    <div class="pipe stagger">
       <div class="pipe-step">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.93 19.07A10 10 0 0 1 4.93 4.93"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
         <div class="pipe-num">01 / CAPTURE</div>
@@ -541,7 +634,7 @@
       <h2 class="h2">The full SOC we're building — module by module.</h2>
       <p class="lead reading">One data model, one API, one access layer across every surface. A couple of pieces work today; most are still ahead of us. Here's the whole picture — marked honestly.</p>
     </div>
-    <div class="cap-grid reveal">
+    <div class="cap-grid stagger">
       <div class="cap">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
         <h3>Endpoint Protection</h3>
@@ -668,7 +761,7 @@
       <h2 class="h2">Open data stores. Open interfaces.</h2>
       <p class="lead reading">TRAPD stands on proven, open infrastructure — and speaks to the rest of your stack over plain HTTP, webhooks and a fully documented API.</p>
     </div>
-    <div class="int-grid reveal">
+    <div class="int-grid stagger">
       <div class="int"><img src="assets/integrations/clickhouse.svg" alt="ClickHouse" /><div><div class="nm">ClickHouse</div><div class="sub">event store</div></div></div>
       <div class="int"><img src="assets/integrations/supabase.svg" alt="Supabase" /><div><div class="nm">Supabase</div><div class="sub">postgres + auth</div></div></div>
       <div class="int"><img src="assets/integrations/redis.svg" alt="Redis" /><div><div class="nm">Redis</div><div class="sub">streams + cache</div></div></div>
@@ -689,7 +782,7 @@
       <h2 class="h2">An honest look at the roadmap.</h2>
       <p class="lead reading">TRAPD is in early, active development. Here's what runs today, what we're building right now, and where we're headed — no vaporware, no fake checkmarks.</p>
     </div>
-    <div class="road reveal">
+    <div class="road stagger">
       <div class="road-col">
         <div class="road-head"><span class="rlabel s-live"><span class="sd"></span>Now</span><span class="rmeta">alpha · runs today</span></div>
         <ul class="road-list">
@@ -785,27 +878,116 @@
 <script>
   document.documentElement.classList.add('js');
 
-  /* ---- nav scroll state (transparent over hero → solid over content) ---- */
+  /* ---- nav scroll state + scroll-progress bar (rAF-throttled) ---- */
   (function () {
     var nav = document.getElementById('nav');
     var hero = document.getElementById('top');
-    function onScroll() {
+    var bar = document.getElementById('navProgress');
+    var ticking = false;
+    function update() {
+      ticking = false;
+      var y = window.scrollY || window.pageYOffset;
       var threshold = Math.max(120, hero.offsetHeight - 90);
-      nav.classList.toggle('scrolled', window.scrollY > threshold);
+      nav.classList.toggle('scrolled', y > threshold);
+      var docH = document.documentElement.scrollHeight - window.innerHeight;
+      var p = docH > 0 ? Math.min(1, Math.max(0, y / docH)) : 0;
+      bar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
     }
-    onScroll();
+    function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+    update();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
   })();
 
-  /* ---- scroll reveals ---- */
+  /* ---- scroll reveals (single blocks + staggered grids) ---- */
   (function () {
-    var els = document.querySelectorAll('.reveal');
+    var els = document.querySelectorAll('.reveal, .stagger');
     if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var t = en.target;
+        if (t.classList.contains('stagger')) {
+          var kids = t.children, i;
+          for (i = 0; i < kids.length; i++) { kids[i].style.transitionDelay = (i * 70) + 'ms'; }
+        }
+        t.classList.add('in');
+        io.unobserve(t);
+      });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     els.forEach(function (e) { io.observe(e); });
+  })();
+
+  /* ---- scroll-spy: highlight the nav link for the section in view ---- */
+  (function () {
+    if (!('IntersectionObserver' in window)) return;
+    var ids = ['platform', 'capabilities', 'principles', 'integrations', 'roadmap'];
+    var sections = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    var links = {};
+    document.querySelectorAll('.nav-links a, .mobile-menu a.mm-link').forEach(function (a) {
+      var href = a.getAttribute('href') || '';
+      if (href.charAt(0) === '#' && href.length > 1) { (links[href.slice(1)] = links[href.slice(1)] || []).push(a); }
+    });
+    var visible = {};
+    function setActive(id) {
+      Object.keys(links).forEach(function (key) {
+        links[key].forEach(function (a) { a.classList.toggle('active', key === id); });
+      });
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { visible[en.target.id] = en.isIntersecting ? en.intersectionRatio : 0; });
+      var best = null, bestR = 0;
+      ids.forEach(function (id) { if (visible[id] > bestR) { bestR = visible[id]; best = id; } });
+      if (best) setActive(best);
+    }, { rootMargin: '-45% 0px -50% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] });
+    sections.forEach(function (s) { io.observe(s); });
+  })();
+
+  /* ---- mobile menu toggle ---- */
+  (function () {
+    var btn = document.getElementById('navToggle');
+    var menu = document.getElementById('mobileMenu');
+    if (!btn || !menu) return;
+    function close() {
+      document.body.classList.remove('menu-open');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-label', 'Open menu');
+    }
+    function toggle() {
+      var open = document.body.classList.toggle('menu-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    }
+    btn.addEventListener('click', toggle);
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    window.addEventListener('resize', function () { if (window.innerWidth > 1000) close(); }, { passive: true });
+  })();
+
+  /* ---- KPI count-up (runs once when the panel scrolls into view) ---- */
+  (function () {
+    var motionOK = !window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var nums = document.querySelectorAll('[data-count]');
+    if (!nums.length) return;
+    function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
+    function animate(el) {
+      var target = parseFloat(el.getAttribute('data-count')) || 0;
+      if (!motionOK) { el.textContent = fmt(target); return; }
+      var dur = 1100, start = null;
+      function step(ts) {
+        if (start === null) start = ts;
+        var t = Math.min(1, (ts - start) / dur);
+        var eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = fmt(target * eased);
+        if (t < 1) requestAnimationFrame(step); else el.textContent = fmt(target);
+      }
+      requestAnimationFrame(step);
+    }
+    if (!('IntersectionObserver' in window)) { nums.forEach(animate); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { animate(en.target); io.unobserve(en.target); } });
+    }, { threshold: 0.5 });
+    nums.forEach(function (el) { io.observe(el); });
   })();
 
   /* ---- hero sparkline ---- */
@@ -827,8 +1009,30 @@
       '<defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="1">' +
       '<stop offset="0%" stop-color="oklch(0.62 0.19 260)" stop-opacity="0.3"/>' +
       '<stop offset="100%" stop-color="oklch(0.62 0.19 260)" stop-opacity="0"/></linearGradient></defs>' +
-      '<path d="' + area + '" fill="url(#spg)"/>' +
-      '<path d="' + line + '" fill="none" stroke="oklch(0.62 0.19 260)" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>';
+      '<path id="sparkArea" d="' + area + '" fill="url(#spg)"/>' +
+      '<path id="sparkLine" d="' + line + '" fill="none" stroke="oklch(0.62 0.19 260)" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>';
+
+    /* draw the line in (and fade the fill up) when it scrolls into view */
+    var motionOK = !window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var path = svg.querySelector('#sparkLine');
+    var fill = svg.querySelector('#sparkArea');
+    if (motionOK && path.getTotalLength) {
+      var len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      fill.style.opacity = '0';
+      var drawn = false;
+      function draw() {
+        if (drawn) return; drawn = true;
+        path.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1)';
+        fill.style.transition = 'opacity 1.2s ease .3s';
+        requestAnimationFrame(function () { path.style.strokeDashoffset = '0'; fill.style.opacity = '1'; });
+      }
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { draw(); io.disconnect(); } }); }, { threshold: 0.3 });
+        io.observe(svg);
+      } else { draw(); }
+    }
   })();
 
   /* ---- terminal typing ---- */

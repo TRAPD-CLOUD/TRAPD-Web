@@ -62,6 +62,14 @@ This repo is a zero-config static deployment.
   vercel --prod   # production deploy
   ```
 
+### Dev / preview deployments
+
+For testing, connect the repo once at <https://vercel.com/new>. After that Vercel
+builds a **preview deployment with its own URL for every branch and pull request** —
+push to a branch (or open a PR) and Vercel comments the preview link. `main` is the
+production deployment. This is the fastest way to share a work-in-progress build
+without touching production.
+
 ## Deploy to IONOS
 
 Two common paths:
