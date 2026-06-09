@@ -1,0 +1,271 @@
+/*
+ * TRAPD Design System — Colors & Type
+ * Sourced from apps/web/app/globals.css (shadcn/ui, new-york style, neutral base).
+ * Fonts: Outfit (sans/serif/display), JetBrains Mono (code).
+ * All colors in oklch — copy-paste compatible with Tailwind 4 @theme.
+ */
+
+/* ============================================================
+   WEB FONTS  — Google Fonts fallback to match production (next/font)
+   ============================================================ */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+/* ============================================================
+   LIGHT THEME (default)  — neutral grayscale + blue chart accents
+   Primary is near-black; destructive is red-orange; charts are blue.
+   ============================================================ */
+:root {
+  /* Surfaces */
+  --background: oklch(1 0 0);                    /* #ffffff — page */
+  --foreground: oklch(0.1450 0 0);               /* near-black — body text */
+  --card: oklch(1 0 0);                          /* white — card fill */
+  --card-foreground: oklch(0.1450 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.1450 0 0);
+
+  /* Brand / action */
+  --primary: oklch(0.2050 0 0);                  /* near-black — primary button */
+  --primary-foreground: oklch(0.9850 0 0);       /* off-white */
+
+  /* Secondary (used for subtle buttons, chip fills) */
+  --secondary: oklch(0.9700 0 0);                /* light gray */
+  --secondary-foreground: oklch(0.2050 0 0);
+
+  /* Muted (used for de-emphasized text & surfaces) */
+  --muted: oklch(0.9700 0 0);
+  --muted-foreground: oklch(0.5560 0 0);         /* ~45% gray */
+
+  /* Accent (hover fills, focus highlight) */
+  --accent: oklch(0.9700 0 0);
+  --accent-foreground: oklch(0.2050 0 0);
+
+  /* Destructive (red-orange; errors, delete) */
+  --destructive: oklch(0.5770 0.2450 27.3250);
+  --destructive-foreground: oklch(1 0 0);
+
+  /* Lines */
+  --border: oklch(0.9220 0 0);                   /* hairline */
+  --input: oklch(0.9220 0 0);
+  --ring: oklch(0.7080 0 0);                     /* focus ring */
+
+  /* Charts — blue family, cool gradient (security/tech vibe) */
+  --chart-1: oklch(0.8100 0.1000 252);           /* light blue */
+  --chart-2: oklch(0.6200 0.1900 260);           /* mid blue */
+  --chart-3: oklch(0.5500 0.2200 263);           /* saturated blue */
+  --chart-4: oklch(0.4900 0.2200 264);           /* deep blue */
+  --chart-5: oklch(0.4200 0.1800 266);           /* indigo */
+
+  /* Sidebar — subtly lighter than main background */
+  --sidebar: oklch(0.9850 0 0);
+  --sidebar-foreground: oklch(0.1450 0 0);
+  --sidebar-primary: oklch(0.2050 0 0);
+  --sidebar-primary-foreground: oklch(0.9850 0 0);
+  --sidebar-accent: oklch(0.9700 0 0);
+  --sidebar-accent-foreground: oklch(0.2050 0 0);
+  --sidebar-border: oklch(0.9220 0 0);
+  --sidebar-ring: oklch(0.7080 0 0);
+
+  /* Typography */
+  --font-sans: "Outfit", ui-sans-serif, sans-serif, system-ui;
+  --font-serif: "Outfit", ui-sans-serif, sans-serif, system-ui; /* no serif in brand */
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Radius scale — base 10px */
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);  /* 6px */
+  --radius-md: calc(var(--radius) - 2px);  /* 8px */
+  --radius-lg: var(--radius);              /* 10px */
+  --radius-xl: calc(var(--radius) + 4px);  /* 14px */
+  --radius-2xl: calc(var(--radius) + 8px); /* 18px */
+  --radius-3xl: calc(var(--radius) + 12px);/* 22px */
+
+  /* Shadow — subtle, single black tint */
+  --shadow-2xs: 0 1px 3px 0 hsl(0 0% 0% / 0.05);
+  --shadow-xs:  0 1px 3px 0 hsl(0 0% 0% / 0.05);
+  --shadow-sm:  0 1px 3px 0 hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow:     0 1px 3px 0 hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md:  0 1px 3px 0 hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg:  0 1px 3px 0 hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl:  0 1px 3px 0 hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0 1px 3px 0 hsl(0 0% 0% / 0.25);
+
+  /* Base spacing unit (Tailwind 4) */
+  --spacing: 0.25rem;                            /* 4px */
+  --tracking-normal: 0em;
+
+  /* ---- SEMANTIC SECURITY COLORS (added for the domain) ---- */
+  --severity-critical: oklch(0.5770 0.2450 27.3250);  /* red */
+  --severity-high:     oklch(0.6800 0.1800 45);       /* orange */
+  --severity-medium:   oklch(0.7800 0.1600 85);       /* amber */
+  --severity-low:      oklch(0.7200 0.1500 160);      /* teal */
+  --severity-info:     oklch(0.6200 0.1900 260);      /* blue (= chart-2) */
+
+  --status-ok:      oklch(0.6500 0.1700 150);         /* green */
+  --status-warn:    oklch(0.7800 0.1600 85);          /* amber */
+  --status-error:   oklch(0.5770 0.2450 27.3250);     /* red */
+  --status-offline: oklch(0.5560 0 0);                /* gray (= muted-fg) */
+}
+
+/* ============================================================
+   DARK THEME  — the primary surface for a SOC dashboard.
+   Apply via `.dark` class on html/body (next-themes).
+   Sidebar-primary shifts to vivid indigo-blue in dark mode.
+   ============================================================ */
+.dark {
+  --background: oklch(0.1450 0 0);               /* #0f0f0f */
+  --foreground: oklch(0.9850 0 0);
+
+  --card: oklch(0.2050 0 0);                     /* elevated surface */
+  --card-foreground: oklch(0.9850 0 0);
+  --popover: oklch(0.2690 0 0);
+  --popover-foreground: oklch(0.9850 0 0);
+
+  --primary: oklch(0.9220 0 0);                  /* near-white — primary action */
+  --primary-foreground: oklch(0.2050 0 0);
+
+  --secondary: oklch(0.2690 0 0);
+  --secondary-foreground: oklch(0.9850 0 0);
+
+  --muted: oklch(0.2690 0 0);
+  --muted-foreground: oklch(0.7080 0 0);
+
+  --accent: oklch(0.3710 0 0);
+  --accent-foreground: oklch(0.9850 0 0);
+
+  --destructive: oklch(0.7040 0.1910 22.2160);   /* brighter red for dark bg */
+  --destructive-foreground: oklch(0.9850 0 0);
+
+  --border: oklch(0.2750 0 0);
+  --input:  oklch(0.3250 0 0);
+  --ring:   oklch(0.5560 0 0);
+
+  --sidebar: oklch(0.2050 0 0);
+  --sidebar-foreground: oklch(0.9850 0 0);
+  --sidebar-primary: oklch(0.4880 0.2430 264.3760);   /* indigo-blue accent */
+  --sidebar-primary-foreground: oklch(0.9850 0 0);
+  --sidebar-accent: oklch(0.2690 0 0);
+  --sidebar-accent-foreground: oklch(0.9850 0 0);
+  --sidebar-border: oklch(0.2750 0 0);
+  --sidebar-ring: oklch(0.4390 0 0);
+}
+
+/* ============================================================
+   SEMANTIC TYPE ROLES  — Outfit is the entire type system.
+   Weights in use: 400 (body), 500 (ui labels), 600 (titles),
+   700 (display). Tracking tightens at larger sizes.
+   ============================================================ */
+
+.type-display {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 3rem;           /* 48px */
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.type-h1 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1.875rem;       /* 30px */
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.type-h2 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1.5rem;         /* 24px */
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.type-h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1.125rem;       /* 18px */
+  line-height: 1.3;
+}
+
+.type-title {                 /* card titles — font-semibold leading-none */
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.type-body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 0.875rem;       /* 14px — the dashboard default */
+  line-height: 1.5;
+}
+
+.type-body-lg {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 1rem;           /* 16px */
+  line-height: 1.55;
+}
+
+.type-body-sm {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 0.8125rem;      /* 13px */
+  line-height: 1.45;
+}
+
+.type-label {                 /* form labels, ui micro */
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.type-caption {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 0.75rem;        /* 12px */
+  line-height: 1.35;
+  color: var(--muted-foreground);
+}
+
+.type-overline {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.6875rem;      /* 11px */
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.type-mono,
+.type-code {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.8125rem;      /* 13px */
+  line-height: 1.5;
+}
+
+.type-metric {                /* big KPI numbers on dashboards */
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 2.25rem;        /* 36px */
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   BASE ELEMENT DEFAULTS (match globals.css)
+   ============================================================ */
+html, body {
+  font-family: var(--font-sans);
+  background: var(--background);
+  color: var(--foreground);
+  letter-spacing: var(--tracking-normal);
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
+}

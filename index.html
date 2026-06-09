@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRAPD — Capture, analyze and respond to every security event</title>
+<meta name="description" content="TRAPD is a modular, API-first, self-hosted security operations platform — from a single homelab box to a full enterprise SOC. Built in the open. Capture, analyze and respond to every security event." />
+<meta name="theme-color" content="#0e0e0e" />
+<link rel="icon" type="image/svg+xml" href="assets/logo_black.svg" />
+<link rel="apple-touch-icon" href="assets/logo_black.svg" />
+
+<!-- Open Graph / social -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="TRAPD — Capture, analyze and respond to every security event" />
+<meta property="og:description" content="Modular, API-first, self-hosted security operations — from a single homelab box to a full enterprise SOC. Built in the open." />
+<meta property="og:site_name" content="TRAPD" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="TRAPD — Capture, analyze and respond to every security event" />
+<meta name="twitter:description" content="Modular, API-first, self-hosted security operations — from a single homelab box to a full enterprise SOC. Built in the open." />
+
+<!-- Preconnect to Google Fonts (tokens.css imports Outfit + JetBrains Mono) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+<link rel="stylesheet" href="assets/tokens.css" />
+<style>
+  /* ============================================================
+     TRAPD homepage — neutral-grayscale bones (TRAPD) +
+     editorial whitespace & a warm principles band (Anthropic nod)
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--foreground);
+    background: var(--background);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--foreground); color: var(--background); }
+  a { color: inherit; text-decoration: none; }
+  img, svg { display: block; }
+
+  :root {
+    --paper: #f6f5f1;            /* warm off-white — the Anthropic nod */
+    --ink: #0e0e0e;             /* near-black band */
+    --blue: oklch(0.62 0.19 260);
+    --line: var(--border);
+    --dim: var(--muted-foreground);
+    --maxw: 1160px;
+  }
+
+  /* per-band token overrides so components adapt to dark surfaces */
+  .band { position: relative; padding: clamp(76px, 9vw, 132px) 0; }
+  .band-dark { background: var(--ink); color: #fafafa; --line: rgba(255,255,255,.13); --dim: rgba(255,255,255,.60); }
+  .band-paper { background: var(--paper); --line: #e7e4dc; }
+  .band-mute { background: var(--secondary); }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+  .reading { max-width: 760px; }
+
+  /* ---------- type roles ---------- */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px; height: 1px;
+    background: currentColor;
+    opacity: 0.5;
+  }
+  h1, h2, h3 { font-weight: 600; letter-spacing: -0.025em; margin: 0; text-wrap: balance; }
+  .display {
+    font-size: clamp(2.55rem, 5.6vw, 4.7rem);
+    line-height: 1.0;
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+  .h2 { font-size: clamp(1.95rem, 3.6vw, 3rem); line-height: 1.06; }
+  .h3 { font-size: 1.18rem; letter-spacing: -0.015em; }
+  .lead {
+    font-size: clamp(1.08rem, 1.45vw, 1.32rem);
+    line-height: 1.5;
+    color: var(--dim);
+    text-wrap: pretty;
+    margin: 0;
+  }
+  .body { font-size: 1rem; line-height: 1.6; color: var(--dim); margin: 0; }
+  .mono { font-family: var(--font-mono); }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 46px; padding: 0 22px;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem; font-weight: 500;
+    border: 1px solid transparent;
+    cursor: pointer; transition: background .18s, color .18s, border-color .18s, opacity .18s;
+    white-space: nowrap;
+  }
+  .btn svg { width: 17px; height: 17px; }
+  .btn-primary { background: #fafafa; color: #0e0e0e; }
+  .btn-primary:hover { background: #fff; opacity: .92; }
+  .btn-dark { background: var(--primary); color: var(--primary-foreground); }
+  .btn-dark:hover { opacity: .9; }
+  .btn-ghost-light { border-color: rgba(255,255,255,.22); color: #fafafa; }
+  .btn-ghost-light:hover { background: rgba(255,255,255,.08); }
+  .btn-outline { border-color: var(--line); color: var(--foreground); background: transparent; }
+  .btn-outline:hover { background: var(--accent); }
+  .btn-sm { height: 38px; padding: 0 16px; font-size: 0.9rem; }
+
+  /* ============================================================
+     NAV
+     ============================================================ */
+  header.nav {
+    position: fixed; inset: 0 0 auto 0; z-index: 50;
+    transition: background .25s ease, border-color .25s ease, backdrop-filter .25s;
+    border-bottom: 1px solid transparent;
+  }
+  .nav-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: 14px 28px;
+    display: flex; align-items: center; gap: 28px;
+    transition: padding .45s cubic-bezier(.4,0,.2,1);
+  }
+  .brand { display: flex; align-items: center; gap: 13px; }
+  .brand .mark {
+    width: 40px; height: 40px;
+    transition: width .45s cubic-bezier(.4,0,.2,1), height .45s cubic-bezier(.4,0,.2,1);
+  }
+  .brand .word {
+    font-weight: 700; font-size: 1.2rem; letter-spacing: 0.2em;
+    color: #fafafa; white-space: nowrap; overflow: hidden;
+    max-width: 170px; opacity: 1;
+    transition: color .25s,
+      max-width .5s cubic-bezier(.4,0,.2,1),
+      opacity .32s ease,
+      transform .5s cubic-bezier(.4,0,.2,1),
+      margin-left .5s cubic-bezier(.4,0,.2,1);
+  }
+  .nav-links { display: flex; align-items: center; gap: 4px; margin-left: 8px; }
+  .nav-links a {
+    font-size: 0.92rem; font-weight: 500; padding: 8px 13px; border-radius: var(--radius-md);
+    color: rgba(255,255,255,.74); transition: color .18s, background .18s;
+  }
+  .nav-links a:hover { color: #fff; background: rgba(255,255,255,.08); }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .nav-right .link {
+    font-size: 0.92rem; font-weight: 500; color: rgba(255,255,255,.74); padding: 8px 12px;
+    transition: color .18s; white-space: nowrap;
+  }
+  .nav-right .link:hover { color: #fff; }
+  .mark-dark { display: none; }
+
+  /* scrolled state — solid light bar over light content */
+  header.nav.scrolled {
+    background: rgba(255,255,255,.86);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-bottom-color: var(--border);
+  }
+  header.nav.scrolled .brand .word {
+    color: var(--foreground);
+    max-width: 0; opacity: 0; transform: translateX(-8px); margin-left: -13px;
+  }
+  header.nav.scrolled .brand .mark { width: 34px; height: 34px; }
+  header.nav.scrolled .nav-inner { padding-top: 11px; padding-bottom: 11px; }
+  header.nav.scrolled .mark-light { display: none; }
+  header.nav.scrolled .mark-dark { display: block; }
+  header.nav.scrolled .nav-links a { color: var(--muted-foreground); }
+  header.nav.scrolled .nav-links a:hover { color: var(--foreground); background: var(--accent); }
+  header.nav.scrolled .nav-right .link { color: var(--muted-foreground); }
+  header.nav.scrolled .nav-right .link:hover { color: var(--foreground); }
+  header.nav.scrolled .btn-ghost-light { border-color: var(--border); color: var(--foreground); }
+  header.nav.scrolled .btn-ghost-light:hover { background: var(--accent); }
+  header.nav.scrolled .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .hero { background: var(--ink); color: #fafafa; overflow: hidden; }
+  .hero-grid-bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(120% 90% at 30% 0%, #000 35%, transparent 78%);
+    -webkit-mask-image: radial-gradient(120% 90% at 30% 0%, #000 35%, transparent 78%);
+    pointer-events: none;
+  }
+  .hero-inner { position: relative; padding-top: 188px; padding-bottom: 0; }
+  .hero h1 { color: #fff; max-width: 16ch; }
+  .hero .lead { color: rgba(255,255,255,.66); max-width: 56ch; margin-top: 28px; }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 38px; }
+  .hero-note { margin-top: 26px; font-size: 0.8rem; color: rgba(255,255,255,.5); display: flex; flex-wrap: wrap; gap: 18px; }
+  .hero-note span { display: inline-flex; align-items: center; gap: 7px; }
+  .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--blue); }
+  .dot.live { background: oklch(0.65 0.17 150); box-shadow: 0 0 0 0 oklch(0.65 0.17 150 / .6); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 oklch(0.65 0.17 150 / .5);} 70%{ box-shadow: 0 0 0 7px oklch(0.65 0.17 150 / 0);} 100%{ box-shadow:0 0 0 0 oklch(0.65 0.17 150 / 0);} }
+
+  /* product panel */
+  .panel-wrap { position: relative; margin-top: 74px; }
+  .panel {
+    position: relative;
+    background: oklch(0.205 0 0);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: 0 -1px 0 rgba(255,255,255,.05), 0 40px 90px -40px rgba(0,0,0,.8);
+    overflow: hidden;
+  }
+  .panel-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 18px; border-bottom: 1px solid rgba(255,255,255,.09);
+  }
+  .panel-bar .tt { font-family: var(--font-mono); font-size: 0.78rem; color: rgba(255,255,255,.8); font-weight: 500; }
+  .panel-bar .meta { margin-left: auto; font-size: 0.76rem; color: rgba(255,255,255,.5); display: flex; align-items: center; gap: 8px; }
+  .panel-body { padding: 20px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+  .kpi { border: 1px solid rgba(255,255,255,.09); border-radius: var(--radius-md); padding: 13px 14px; background: rgba(255,255,255,.015); }
+  .kpi .k { font-size: 0.72rem; color: rgba(255,255,255,.55); }
+  .kpi .v { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; margin-top: 5px; font-variant-numeric: tabular-nums; }
+  .kpi .d { font-size: 0.72rem; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .good { color: oklch(0.72 0.15 150); }
+  .chart-card, .list-card { border: 1px solid rgba(255,255,255,.09); border-radius: var(--radius-md); background: rgba(255,255,255,.015); }
+  .chart-card { padding: 14px 14px 4px; }
+  .chart-card .ch-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .chart-card .ch-head .t { font-size: 0.82rem; font-weight: 500; }
+  .chart-card .ch-head .s { font-size: 0.7rem; color: rgba(255,255,255,.45); font-family: var(--font-mono); }
+  .list-card { padding: 6px; }
+  .alert {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 11px;
+    padding: 9px 10px; border-radius: var(--radius-sm);
+  }
+  .alert + .alert { border-top: 1px solid rgba(255,255,255,.06); }
+  .alert .rule { font-size: 0.8rem; color: rgba(255,255,255,.9); line-height: 1.3; }
+  .alert .sub { font-size: 0.7rem; color: rgba(255,255,255,.45); font-family: var(--font-mono); margin-top: 2px; }
+  .alert .ts { font-size: 0.7rem; color: rgba(255,255,255,.4); font-family: var(--font-mono); }
+  .sev {
+    font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; padding: 3px 7px; border-radius: 999px; border: 1px solid; white-space: nowrap;
+  }
+  .sev.critical { color: oklch(0.7 0.2 25); background: oklch(0.577 0.245 27.3 / .14); border-color: oklch(0.577 0.245 27.3 / .35); }
+  .sev.high { color: oklch(0.78 0.16 55); background: oklch(0.68 0.18 45 / .14); border-color: oklch(0.68 0.18 45 / .32); }
+  .sev.medium { color: oklch(0.82 0.15 90); background: oklch(0.78 0.16 85 / .16); border-color: oklch(0.78 0.16 85 / .32); }
+
+  /* ============================================================
+     SHARED section header
+     ============================================================ */
+  .sec-head { display: flex; flex-direction: column; gap: 20px; }
+  .sec-head .h2 { max-width: 18ch; }
+
+  /* pipeline */
+  .pipe { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 64px; border-top: 1px solid var(--line); }
+  .pipe-step { padding: 34px 32px 34px 0; border-right: 1px solid var(--line); }
+  .pipe-step:last-child { border-right: none; padding-right: 0; }
+  .pipe-step:not(:first-child) { padding-left: 32px; }
+  .pipe-num { font-family: var(--font-mono); font-size: 0.74rem; color: var(--blue); font-weight: 600; letter-spacing: .1em; }
+  .pipe-step h3 { margin: 16px 0 10px; }
+  .pipe-step .ico { width: 26px; height: 26px; color: var(--foreground); margin-bottom: 22px; stroke-width: 1.6; }
+
+  /* capabilities grid */
+  .cap-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 60px; border: 1px solid var(--line); border-radius: var(--radius-xl); overflow: hidden; }
+  .cap {
+    padding: 30px 26px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    background: var(--card); transition: background .2s;
+    display: flex; flex-direction: column;
+  }
+  .cap:hover { background: var(--accent); }
+  .cap:nth-child(4n) { border-right: none; }
+  .cap:nth-last-child(-n+4) { border-bottom: none; }
+  .cap .ico { width: 22px; height: 22px; stroke-width: 1.6; color: var(--foreground); }
+  .cap h3 { font-size: 1.02rem; margin: 18px 0 8px; letter-spacing: -0.01em; }
+  .cap p { font-size: 0.88rem; line-height: 1.5; color: var(--muted-foreground); margin: 0 0 14px; }
+  .tag { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: .08em; color: var(--muted-foreground); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; }
+
+  /* spotlight */
+  .spot { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 64px; align-items: center; }
+  .spot-list { margin-top: 30px; display: flex; flex-direction: column; gap: 22px; }
+  .spot-list .item { display: flex; gap: 14px; }
+  .spot-list .item .ico { width: 19px; height: 19px; color: var(--blue); margin-top: 2px; flex-shrink: 0; stroke-width: 1.8; }
+  .spot-list .item h3 { font-size: 0.98rem; margin: 0 0 4px; }
+  .spot-list .item p { font-size: 0.88rem; line-height: 1.5; color: var(--muted-foreground); margin: 0; }
+  .spot-visual {
+    background: var(--ink); border-radius: var(--radius-xl); border: 1px solid #222; overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .tbl-head, .tbl-row { display: grid; grid-template-columns: 86px 1fr 110px 96px; gap: 12px; align-items: center; padding: 12px 18px; }
+  .tbl-head { border-bottom: 1px solid rgba(255,255,255,.1); font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+  .tbl-row { border-bottom: 1px solid rgba(255,255,255,.06); font-size: 0.82rem; color: rgba(255,255,255,.85); }
+  .tbl-row:last-child { border-bottom: none; }
+  .tbl-row .host { font-family: var(--font-mono); font-size: 0.74rem; color: rgba(255,255,255,.6); }
+  .tbl-row .mitre { font-family: var(--font-mono); font-size: 0.72rem; color: var(--blue); }
+
+  /* principles (warm paper) */
+  .principles { margin-top: 60px; border-top: 1px solid var(--line); }
+  .principle { display: grid; grid-template-columns: 120px 1fr; gap: 32px; padding: 42px 0; border-bottom: 1px solid var(--line); align-items: start; }
+  .principle .pn { font-family: var(--font-mono); font-size: 0.82rem; font-weight: 600; letter-spacing: .14em; color: #b4502e; padding-top: 8px; }
+  .principle h3 { font-size: clamp(1.4rem, 2.4vw, 1.95rem); letter-spacing: -0.02em; max-width: 22ch; }
+  .principle p { font-size: 1.02rem; line-height: 1.6; color: #5c574c; margin: 14px 0 0; max-width: 60ch; }
+
+  /* integrations */
+  .int-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 52px; }
+  .int {
+    display: flex; align-items: center; gap: 14px; padding: 22px 24px;
+    border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--card);
+    transition: border-color .2s;
+  }
+  .int:hover { border-color: var(--ring); }
+  .int img { width: 30px; height: 30px; object-fit: contain; }
+  .int .nm { font-size: 0.92rem; font-weight: 500; }
+  .int .sub { font-size: 0.72rem; color: var(--muted-foreground); font-family: var(--font-mono); margin-top: 2px; }
+
+  /* tiers */
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 56px; }
+  .tier { border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 30px; background: var(--card); display: flex; flex-direction: column; }
+  .tier.feature { background: var(--ink); color: #fafafa; border-color: #222; }
+  .tier .nm { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-foreground); }
+  .tier.feature .nm { color: rgba(255,255,255,.6); }
+  .tier h3 { font-size: 1.35rem; margin: 14px 0 6px; letter-spacing: -0.02em; }
+  .tier .desc { font-size: 0.9rem; line-height: 1.5; color: var(--muted-foreground); margin: 0 0 22px; min-height: 42px; }
+  .tier.feature .desc { color: rgba(255,255,255,.6); }
+  .tier ul { list-style: none; padding: 0; margin: 0 0 26px; display: flex; flex-direction: column; gap: 11px; }
+  .tier li { font-size: 0.88rem; display: flex; gap: 10px; align-items: flex-start; line-height: 1.4; }
+  .tier li svg { width: 15px; height: 15px; margin-top: 3px; flex-shrink: 0; color: var(--blue); stroke-width: 2.2; }
+  .tier.feature li svg { color: oklch(0.75 0.13 250); }
+  .tier .foot { margin-top: auto; }
+
+  /* ---- vision / status framing ---- */
+  .cap-foot { margin-top: auto; padding-top: 4px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .cstatus { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }
+  .cstatus .sd { width: 6px; height: 6px; border-radius: 999px; }
+  .s-live .sd { background: var(--status-ok); }
+  .s-prog .sd { background: var(--status-warn); }
+  .s-plan .sd { background: var(--status-offline); }
+
+  .hero-badge { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.74); border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 7px 15px; }
+  .hero-badge .sd { width: 7px; height: 7px; border-radius: 999px; background: var(--status-warn); animation: pulse-w 2.4s infinite; }
+  @keyframes pulse-w { 0% { box-shadow: 0 0 0 0 oklch(0.78 0.16 85 / .5);} 70%{ box-shadow: 0 0 0 7px oklch(0.78 0.16 85 / 0);} 100%{ box-shadow:0 0 0 0 oklch(0.78 0.16 85 / 0);} }
+  .cpill { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: .06em; text-transform: uppercase; color: oklch(0.84 0.14 90); border: 1px solid oklch(0.78 0.16 85 / .4); background: oklch(0.78 0.16 85 / .14); border-radius: 999px; padding: 2px 9px; }
+
+  /* roadmap board */
+  .road { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 56px; }
+  .road-col { border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 26px; background: var(--card); }
+  .road-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 18px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+  .rlabel { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.1rem; letter-spacing: -0.015em; }
+  .rlabel .sd { width: 10px; height: 10px; border-radius: 999px; }
+  .rmeta { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }
+  .road-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+  .road-list li { position: relative; padding-left: 24px; font-size: 0.92rem; line-height: 1.45; }
+  .road-list li::before { content: ""; position: absolute; left: 0; top: 5px; width: 9px; height: 9px; border-radius: 999px; }
+  .road-list li.done::before { background: var(--status-ok); }
+  .road-list li.prog::before { background: var(--status-warn); }
+  .road-list li.plan { color: var(--muted-foreground); }
+  .road-list li.plan::before { background: transparent; border: 1.5px solid var(--status-offline); top: 4px; }
+  .road-foot { margin-top: 30px; font-size: 0.86rem; color: var(--muted-foreground); }
+
+  /* quickstart / CTA */
+  .qs { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .term {
+    background: #0a0a0a; border: 1px solid rgba(255,255,255,.13); border-radius: var(--radius-lg);
+    overflow: hidden; box-shadow: 0 30px 60px -30px rgba(0,0,0,.7);
+  }
+  .term-bar { display: flex; align-items: center; gap: 7px; padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,.09); }
+  .term-bar .tl { width: 11px; height: 11px; border-radius: 999px; background: rgba(255,255,255,.18); }
+  .term-bar .tt { margin-left: 10px; font-family: var(--font-mono); font-size: 0.72rem; color: rgba(255,255,255,.45); }
+  .term-body { padding: 20px 20px 24px; font-family: var(--font-mono); font-size: 0.83rem; line-height: 1.85; min-height: 232px; }
+  .term-body .ln { white-space: pre-wrap; }
+  .term-body .pr { color: var(--blue); }
+  .term-body .cm { color: rgba(255,255,255,.4); }
+  .term-body .ou { color: rgba(255,255,255,.62); }
+  .term-body .ok { color: oklch(0.72 0.15 150); }
+  .term-body .cmd { color: #fafafa; }
+  .cursor { display: inline-block; width: 8px; height: 1.05em; background: var(--blue); vertical-align: -2px; animation: blink 1.05s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* footer */
+  footer.ft { background: var(--ink); color: rgba(255,255,255,.7); padding: 72px 0 40px; border-top: 1px solid rgba(255,255,255,.08); }
+  .ft-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 40px; }
+  .ft-brand .brand .word { color: #fafafa; }
+  .ft-brand p { font-size: 0.88rem; line-height: 1.6; color: rgba(255,255,255,.5); max-width: 32ch; margin: 18px 0 0; }
+  .ft-col h4 { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.4); margin: 0 0 16px; font-weight: 500; }
+  .ft-col a { display: block; font-size: 0.9rem; color: rgba(255,255,255,.65); padding: 5px 0; transition: color .15s; }
+  .ft-col a:hover { color: #fff; }
+  .ft-bottom { margin-top: 56px; padding-top: 26px; border-top: 1px solid rgba(255,255,255,.08); display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .ft-bottom .cp { font-family: var(--font-mono); font-size: 0.74rem; color: rgba(255,255,255,.4); }
+  .ft-bottom .lg { display: flex; gap: 22px; }
+  .ft-bottom .lg a { font-size: 0.8rem; color: rgba(255,255,255,.5); }
+  .ft-bottom .lg a:hover { color: #fff; }
+
+  /* reveal animation (visible by default; hidden only with JS + motion-ok) */
+  @media (prefers-reduced-motion: no-preference) {
+    .js .reveal { opacity: 0; transform: translateY(20px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+    .js .reveal.in { opacity: 1; transform: none; }
+  }
+
+  /* responsive */
+  @media (max-width: 1000px) {
+    .cap-grid { grid-template-columns: repeat(2, 1fr); }
+    .cap:nth-child(4n) { border-right: 1px solid var(--line); }
+    .cap:nth-child(2n) { border-right: none; }
+    .cap:nth-last-child(-n+4) { border-bottom: 1px solid var(--line); }
+    .cap:nth-last-child(-n+2) { border-bottom: none; }
+    .int-grid { grid-template-columns: repeat(2, 1fr); }
+    .spot, .qs { grid-template-columns: 1fr; gap: 40px; }
+    .tiers, .road { grid-template-columns: 1fr; }
+    .panel-body { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 680px) {
+    .pipe, .cap-grid, .int-grid { grid-template-columns: 1fr; }
+    .pipe-step { border-right: none; border-bottom: 1px solid var(--line); padding: 28px 0; }
+    .pipe-step:not(:first-child) { padding-left: 0; }
+    .pipe-step:last-child { border-bottom: none; }
+    .cap { border-right: none !important; }
+    .principle { grid-template-columns: 1fr; gap: 12px; }
+    .kpi-row { grid-template-columns: 1fr; }
+    .hero-inner { padding-top: 150px; }
+    .nav-right .link.hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================ NAV ============================ -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top" aria-label="TRAPD home">
+      <img class="mark mark-light" src="assets/logo_white.svg" alt="" />
+      <img class="mark mark-dark" src="assets/logo_black.svg" alt="" />
+      <span class="word">TRAPD</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#platform">Platform</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#principles">Principles</a>
+      <a href="#integrations">Integrations</a>
+      <a href="#roadmap">Roadmap</a>
+    </nav>
+    <div class="nav-right">
+      <a class="link hide-sm" href="#">Docs</a>
+      <a class="link" href="#">Sign in</a>
+      <a class="btn btn-ghost-light btn-sm" href="#"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>Star on GitHub</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================ HERO ============================ -->
+<section class="hero band" id="top">
+  <div class="hero-grid-bg" aria-hidden="true"></div>
+  <div class="wrap hero-inner">
+    <div class="hero-badge"><span class="sd"></span>Work in progress · v0.3 alpha · building in public</div>
+    <h1 class="display" style="margin-top:26px;">Capture, analyze and respond to every security event.</h1>
+    <p class="lead">This is the platform we're building: modular, API‑first, self‑hosted security operations — from a single homelab box to a full enterprise SOC. What follows is our vision, and an honest snapshot of where we are today. Not a finished product yet — a direction, built in the open.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#platform">Read the vision <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+      <a class="btn btn-ghost-light" href="#roadmap">See where we stand</a>
+    </div>
+    <div class="hero-note">
+      <span><span class="dot"></span>Open core — built in public</span>
+      <span><span class="dot"></span>API‑first, no magic</span>
+      <span><span class="dot"></span>Self‑host it, own your data</span>
+    </div>
+
+    <!-- product panel -->
+    <div class="panel-wrap reveal">
+      <div class="panel">
+        <div class="panel-bar">
+          <span class="dot live"></span>
+          <span class="tt">OverWatch Live</span>
+          <span class="meta"><span class="cpill">Concept preview</span> sample data</span>
+        </div>
+        <div class="panel-body">
+          <div>
+            <div class="kpi-row">
+              <div class="kpi"><div class="k">Events / min</div><div class="v">1,247</div><div class="d good">+12.4%</div></div>
+              <div class="kpi"><div class="k">Active alerts</div><div class="v">62</div><div class="d good">−8 vs 24h</div></div>
+              <div class="kpi"><div class="k">Time to triage</div><div class="v">4m 12s</div><div class="d good">−32s</div></div>
+            </div>
+            <div class="chart-card">
+              <div class="ch-head"><span class="t">Event ingest</span><span class="s">events / min · 64m</span></div>
+              <svg id="spark" viewBox="0 0 640 120" preserveAspectRatio="none" style="width:100%;height:118px;"></svg>
+            </div>
+          </div>
+          <div class="list-card">
+            <div class="alert"><span class="sev critical">Critical</span><div><div class="rule">Lateral movement · SMB exec</div><div class="sub">dc-prod-04 · T1021.002</div></div><span class="ts">14:23</span></div>
+            <div class="alert"><span class="sev critical">Critical</span><div><div class="rule">Encoded PowerShell command</div><div class="sub">win-build-12 · T1059.001</div></div><span class="ts">14:21</span></div>
+            <div class="alert"><span class="sev high">High</span><div><div class="rule">Kerberoasting attempt</div><div class="sub">dc-prod-04 · T1558.003</div></div><span class="ts">14:19</span></div>
+            <div class="alert"><span class="sev high">High</span><div><div class="rule">Outbound to known C2 IP</div><div class="sub">web-edge-02 · T1071.001</div></div><span class="ts">14:12</span></div>
+            <div class="alert"><span class="sev medium">Medium</span><div><div class="rule">MFA bypass from new geo</div><div class="sub">identity-api · T1621</div></div><span class="ts">14:08</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ WHAT IS / PIPELINE ============================ -->
+<section class="band" id="platform">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">What is TRAPD</span>
+      <h2 class="h2">One pipeline for the whole security lifecycle.</h2>
+      <p class="lead reading">Most tools cover a slice — an EDR here, a SIEM there, a SOAR bolted on top. TRAPD runs the full loop on a single, open data model, so a signal becomes a detection becomes a response without leaving the platform.</p>
+    </div>
+    <div class="pipe reveal">
+      <div class="pipe-step">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.93 19.07A10 10 0 0 1 4.93 4.93"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        <div class="pipe-num">01 / CAPTURE</div>
+        <h3 class="h3">Ingest everything</h3>
+        <p class="body">Endpoints, identities, cloud and network — streamed into one normalized event store. Lightweight sensors, syslog, webhooks or the API. Tabular at 1k+ events per second.</p>
+      </div>
+      <div class="pipe-step">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>
+        <div class="pipe-num">02 / ANALYZE</div>
+        <h3 class="h3">Detect &amp; correlate</h3>
+        <p class="body">Detection rules mapped to MITRE ATT&amp;CK, behavioral correlation and threat intel enrichment turn raw events into ranked, explainable alerts — not a wall of noise.</p>
+      </div>
+      <div class="pipe-step">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <div class="pipe-num">03 / RESPOND</div>
+        <h3 class="h3">Act &amp; automate</h3>
+        <p class="body">Isolate a host, revoke a session, open a case or fire a playbook. SOAR workflows run the routine response so your team spends time on what actually matters.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CAPABILITIES ============================ -->
+<section class="band band-mute" id="capabilities">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">The vision · capabilities</span>
+      <h2 class="h2">The full SOC we're building — module by module.</h2>
+      <p class="lead reading">One data model, one API, one access layer across every surface. A couple of pieces work today; most are still ahead of us. Here's the whole picture — marked honestly.</p>
+    </div>
+    <div class="cap-grid reveal">
+      <div class="cap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+        <h3>Endpoint Protection</h3>
+        <p>Real-time EDR across Windows, Linux and macOS with process, file and network telemetry.</p>
+        <div class="cap-foot"><span class="tag">EDR</span><span class="cstatus s-prog"><span class="sd"></span>In progress</span></div>
+      </div>
+      <div class="cap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11h.01"/><path d="M16 16a4 4 0 0 0-8 0"/><path d="M5 8a7 7 0 0 1 14 0v0"/><path d="M3 12a9 9 0 0 1 18 0"/><path d="M8 20a8 8 0 0 1 8 0"/></svg>
+        <h3>Identity Protection</h3>
+        <p>Detect MFA bypass, Kerberoasting and lateral movement across your identity surface.</p>
+        <div class="cap-foot"><span class="tag">ITDR</span><span class="cstatus s-plan"><span class="sd"></span>Planned</span></div>
+      </div>
+      <div class="cap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0 0-9 6 6 0 0 0-11.6-2A4.5 4.5 0 0 0 6.5 19z"/><path d="M12 13v4"/><path d="m10 15 2-2 2 2"/></svg>
+        <h3>Cloud Security</h3>
+        <p>Posture and runtime monitoring for AWS, GCP and Azure on the same event model.</p>
+        <div class="cap-foot"><span class="tag">CNAPP</span><span class="cstatus s-plan"><span class="sd"></span>Planned</span></div>
+      </div>
+      <div class="cap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62a10 10 0 1 0 19.42 0"/><circle cx="12" cy="12" r="3"/><path d="m12 12 5-3"/></svg>
+        <h3>Detections (SIEM)</h3>
+        <p>Author rules mapped to MITRE ATT&amp;CK; correlate, tune and version them as code.</p>
+        <div class="cap-foot"><span class="tag">SIEM</span><span class="cstatus s-prog"><span class="sd"></span>In progress</span></div>
+      </div>
+      <div class="cap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9M6.53 9C4.6 8.8 3 7.1 3 5M6 13H2M3 21c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>
+        <h3>Vulnerability Scanner</h3>
+        <p>Continuous CVE discovery on your assets, prioritized by real exploitability.</p>
+        <div class="cap-foot"><span class="tag">VM</span><span class="cstatus s-plan"><span class="sd"></span>Planned</span></div>
+      </div>
+      <div class="cap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.142 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.142 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/></svg>
+        <h3>Intelligence Hub</h3>
+        <p>IOC feeds and threat intel enrichment baked into every alert and investigation.</p>
+        <div class="cap-foot"><span class="tag">CTI</span><span class="cstatus s-plan"><span class="sd"></span>Planned</span></div>
+      </div>
+      <div class="cap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h0M16 16h0"/></svg>
+        <h3>SOAR Platform</h3>
+        <p>No-code playbooks to automate triage and response. Webhooks in, actions out.</p>
+        <div class="cap-foot"><span class="tag">SOAR</span><span class="cstatus s-plan"><span class="sd"></span>Planned</span></div>
+      </div>
+      <div class="cap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM18 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2zM3 14a9 9 0 0 1 18 0"/></svg>
+        <h3>24/7 MDR Service</h3>
+        <p>Hand the night shift to OverWatch analysts — managed detection &amp; response, on tap.</p>
+        <div class="cap-foot"><span class="tag">MDR</span><span class="cstatus s-plan"><span class="sd"></span>Planned</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SPOTLIGHT ============================ -->
+<section class="band">
+  <div class="wrap spot">
+    <div class="reveal">
+      <span class="eyebrow">Detections × MITRE</span>
+      <h2 class="h2" style="margin-top:20px;">Alerts you can reason about.</h2>
+      <p class="lead" style="margin-top:20px;">Every detection is mapped to the ATT&amp;CK framework and carries its full context — host, source, technique and the events that triggered it. No black boxes.</p>
+      <div class="spot-list">
+        <div class="item">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <div><h3>Mapped to ATT&amp;CK</h3><p>Filter and pivot by technique, tactic or actor — your coverage is always visible.</p></div>
+        </div>
+        <div class="item">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <div><h3>Query the raw events</h3><p>Drill from any alert straight into the underlying log lines in milliseconds.</p></div>
+        </div>
+        <div class="item">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <div><h3>One click to respond</h3><p>Isolate, contain or trigger a playbook directly from the alert — fully audited.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="spot-visual reveal">
+      <div class="tbl-head"><span>Severity</span><span>Detection</span><span>Host</span><span>Technique</span></div>
+      <div class="tbl-row"><span class="sev critical">Critical</span><span>Lateral movement · SMB exec<div class="host">src 10.0.4.127</div></span><span class="host">dc-prod-04</span><span class="mitre">T1021.002</span></div>
+      <div class="tbl-row"><span class="sev critical">Critical</span><span>Encoded PowerShell command<div class="host">src 10.0.3.88</div></span><span class="host">win-build-12</span><span class="mitre">T1059.001</span></div>
+      <div class="tbl-row"><span class="sev high">High</span><span>Kerberoasting attempt<div class="host">src 10.0.4.127</div></span><span class="host">dc-prod-04</span><span class="mitre">T1558.003</span></div>
+      <div class="tbl-row"><span class="sev high">High</span><span>Outbound to known C2 IP<div class="host">src 10.0.1.44</div></span><span class="host">web-edge-02</span><span class="mitre">T1071.001</span></div>
+      <div class="tbl-row"><span class="sev medium">Medium</span><span>MFA bypass from new geo<div class="host">src 203.0.113.42</div></span><span class="host">identity-api</span><span class="mitre">T1621</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PRINCIPLES (warm paper) ============================ -->
+<section class="band band-paper" id="principles">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow" style="color:#b4502e;">Principles</span>
+      <h2 class="h2" style="max-width:20ch;">We build security tooling the way we'd want to use it.</h2>
+    </div>
+    <div class="principles">
+      <div class="principle reveal">
+        <div class="pn">01</div>
+        <div>
+          <h3>API-first. No magic.</h3>
+          <p>Everything in the UI is a documented API call underneath. Nothing is hidden behind a black box, and anything you can click, you can script. Your security stack should be inspectable, not mysterious.</p>
+        </div>
+      </div>
+      <div class="principle reveal">
+        <div class="pn">02</div>
+        <div>
+          <h3>Your data lives on your infrastructure.</h3>
+          <p>Self-host TRAPD on a single box or your own cluster — Postgres and ClickHouse under the hood, no telemetry leaving your network unless you ask it to. Data ownership is the default, not an enterprise upsell.</p>
+        </div>
+      </div>
+      <div class="principle reveal">
+        <div class="pn">03</div>
+        <div>
+          <h3>It scales from one box to thousands.</h3>
+          <p>The same platform runs a hobbyist homelab and a multi-tenant enterprise SOC. Start small, grow without re-platforming, and never pay for capacity you aren't using yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ INTEGRATIONS ============================ -->
+<section class="band" id="integrations">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Built on what you trust</span>
+      <h2 class="h2">Open data stores. Open interfaces.</h2>
+      <p class="lead reading">TRAPD stands on proven, open infrastructure — and speaks to the rest of your stack over plain HTTP, webhooks and a fully documented API.</p>
+    </div>
+    <div class="int-grid reveal">
+      <div class="int"><img src="assets/integrations/clickhouse.svg" alt="ClickHouse" /><div><div class="nm">ClickHouse</div><div class="sub">event store</div></div></div>
+      <div class="int"><img src="assets/integrations/supabase.svg" alt="Supabase" /><div><div class="nm">Supabase</div><div class="sub">postgres + auth</div></div></div>
+      <div class="int"><img src="assets/integrations/redis.svg" alt="Redis" /><div><div class="nm">Redis</div><div class="sub">streams + cache</div></div></div>
+      <div class="int"><img src="assets/integrations/mongodb.svg" alt="MongoDB" /><div><div class="nm">MongoDB</div><div class="sub">documents</div></div></div>
+      <div class="int"><img src="assets/integrations/mysql.svg" alt="MySQL" /><div><div class="nm">MySQL</div><div class="sub">relational</div></div></div>
+      <div class="int"><img src="assets/integrations/sqlserver.svg" alt="SQL Server" /><div><div class="nm">SQL Server</div><div class="sub">relational</div></div></div>
+      <div class="int"><img src="assets/integrations/sqlite.svg" alt="SQLite" /><div><div class="nm">SQLite</div><div class="sub">edge / homelab</div></div></div>
+      <div class="int" style="background:var(--secondary);"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><div><div class="nm">REST &amp; Webhooks</div><div class="sub">everything else</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ ROADMAP ============================ -->
+<section class="band band-mute" id="roadmap">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Where we are</span>
+      <h2 class="h2">An honest look at the roadmap.</h2>
+      <p class="lead reading">TRAPD is in early, active development. Here's what runs today, what we're building right now, and where we're headed — no vaporware, no fake checkmarks.</p>
+    </div>
+    <div class="road reveal">
+      <div class="road-col">
+        <div class="road-head"><span class="rlabel s-live"><span class="sd"></span>Now</span><span class="rmeta">alpha · runs today</span></div>
+        <ul class="road-list">
+          <li class="done">Event capture pipeline &amp; normalized store</li>
+          <li class="done">Postgres / SQLite self-host via Docker</li>
+          <li class="done">Live dashboard &amp; event ingest view</li>
+          <li class="done">First detection rules</li>
+        </ul>
+      </div>
+      <div class="road-col">
+        <div class="road-head"><span class="rlabel s-prog"><span class="sd"></span>Next</span><span class="rmeta">in progress</span></div>
+        <ul class="road-list">
+          <li class="prog">Endpoint sensors (EDR) — Linux &amp; Windows</li>
+          <li class="prog">SIEM detections mapped to MITRE ATT&amp;CK</li>
+          <li class="prog">ClickHouse backend for scale</li>
+          <li class="prog">Auth, RBAC &amp; audit logging</li>
+        </ul>
+      </div>
+      <div class="road-col">
+        <div class="road-head"><span class="rlabel s-plan"><span class="sd"></span>Later</span><span class="rmeta">on the roadmap</span></div>
+        <ul class="road-list">
+          <li class="plan">Identity &amp; cloud protection</li>
+          <li class="plan">SOAR playbooks &amp; automation</li>
+          <li class="plan">Vulnerability scanner &amp; intel hub</li>
+          <li class="plan">Managed 24/7 MDR service</li>
+        </ul>
+      </div>
+    </div>
+    <p class="road-foot reveal mono">Built in the open — the roadmap shifts as we learn. Follow along on GitHub and help shape what comes next.</p>
+  </div>
+</section>
+
+<!-- ============================ QUICKSTART / CTA ============================ -->
+<section class="band band-dark" id="start">
+  <div class="wrap qs">
+    <div class="reveal">
+      <span class="eyebrow">Get involved</span>
+      <h2 class="h2" style="color:#fff;margin-top:20px;">This is the beginning. Come build it with us.</h2>
+      <p class="lead" style="color:rgba(255,255,255,.66);margin-top:20px;">TRAPD is open and built in public. Star the repo to follow along, kick the tires on the early alpha, and help shape where it goes. The flow below is the developer experience we're working toward — not a finished release.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>Star on GitHub</a>
+        <a class="btn btn-ghost-light" href="#roadmap">See the roadmap <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+      </div>
+    </div>
+    <div class="term reveal">
+      <div class="term-bar"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="tt">~/trapd — zsh · target experience</span></div>
+      <div class="term-body" id="term"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="ft">
+  <div class="wrap">
+    <div class="ft-grid">
+      <div class="ft-brand">
+        <a class="brand" href="#top"><img class="mark" src="assets/logo_white.svg" alt="" style="width:24px;height:24px;" /><span class="word">TRAPD</span></a>
+        <p>Capture, analyze and respond to security events — from homelab to enterprise. API-first, self-hosted, yours to own. In early, open development.</p>
+      </div>
+      <div class="ft-col">
+        <h4>Product</h4>
+        <a href="#platform">Platform</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#integrations">Integrations</a>
+        <a href="#roadmap">Roadmap</a>
+      </div>
+      <div class="ft-col">
+        <h4>Resources</h4>
+        <a href="#">Documentation</a>
+        <a href="#">API reference</a>
+        <a href="#">Changelog</a>
+        <a href="#">Status</a>
+      </div>
+      <div class="ft-col">
+        <h4>Company</h4>
+        <a href="#">About</a>
+        <a href="#">GitHub</a>
+        <a href="#">Security</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+    <div class="ft-bottom">
+      <span class="cp">© 2026 TRAPD · v0.3 alpha · built in public</span>
+      <div class="lg">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Imprint</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.documentElement.classList.add('js');
+
+  /* ---- nav scroll state (transparent over hero → solid over content) ---- */
+  (function () {
+    var nav = document.getElementById('nav');
+    var hero = document.getElementById('top');
+    function onScroll() {
+      var threshold = Math.max(120, hero.offsetHeight - 90);
+      nav.classList.toggle('scrolled', window.scrollY > threshold);
+    }
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+  })();
+
+  /* ---- scroll reveals ---- */
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    els.forEach(function (e) { io.observe(e); });
+  })();
+
+  /* ---- hero sparkline ---- */
+  (function () {
+    var svg = document.getElementById('spark');
+    if (!svg) return;
+    var w = 640, h = 120, pad = 5, n = 64;
+    var data = [];
+    for (var i = 0; i < n; i++) {
+      data.push(900 + Math.sin(i / 4) * 170 + Math.cos(i / 2.5) * 55 + (i > 48 ? (i - 48) * 14 : 0) + Math.random() * 70);
+    }
+    var max = Math.max.apply(null, data), min = Math.min.apply(null, data);
+    var pts = data.map(function (v, i) {
+      return [pad + i * ((w - 2 * pad) / (n - 1)), h - pad - ((v - min) / (max - min || 1)) * (h - 2 * pad)];
+    });
+    var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+    var area = line + ' L ' + (w - pad) + ' ' + (h - pad) + ' L ' + pad + ' ' + (h - pad) + ' Z';
+    svg.innerHTML =
+      '<defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="oklch(0.62 0.19 260)" stop-opacity="0.3"/>' +
+      '<stop offset="100%" stop-color="oklch(0.62 0.19 260)" stop-opacity="0"/></linearGradient></defs>' +
+      '<path d="' + area + '" fill="url(#spg)"/>' +
+      '<path d="' + line + '" fill="none" stroke="oklch(0.62 0.19 260)" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>';
+  })();
+
+  /* ---- terminal typing ---- */
+  (function () {
+    var el = document.getElementById('term');
+    if (!el) return;
+    var lines = [
+      { t: 'cm', s: '# the developer experience we\'re building toward' },
+      { t: 'cmd', pre: '$ ', s: 'git clone https://github.com/trapd-cloud/trapd' },
+      { t: 'ou', s: 'Cloning into \'trapd\'… done.' },
+      { t: 'cmd', pre: '$ ', s: 'docker compose up -d' },
+      { t: 'ou', s: 'Starting clickhouse · postgres · redis · trapd-api …' },
+      { t: 'ok', s: '✔ stack ready  ·  http://localhost:8080' },
+      { t: 'cmd', pre: '$ ', s: 'trapd sensor enroll --host dc-prod-04' },
+      { t: 'ou', s: 'enrolling sensor … capturing events' },
+      { t: 'cm', s: '# early alpha — not all of this ships yet. follow the build →' }
+    ];
+    var started = false;
+    function run() {
+      if (started) return; started = true;
+      el.innerHTML = '';
+      var li = 0;
+      function nextLine() {
+        if (li >= lines.length) {
+          var c = document.createElement('span'); c.className = 'cursor';
+          el.appendChild(c); return;
+        }
+        var L = lines[li];
+        var div = document.createElement('div'); div.className = 'ln ' + (L.t === 'cmd' ? '' : L.t);
+        if (L.pre) { var p = document.createElement('span'); p.className = 'pr'; p.textContent = L.pre; div.appendChild(p); }
+        var span = document.createElement('span'); if (L.t === 'cmd') span.className = 'cmd'; div.appendChild(span);
+        el.appendChild(div);
+        if (L.t === 'cmd') {
+          var ci = 0;
+          (function type() {
+            span.textContent = L.s.slice(0, ci);
+            ci++;
+            if (ci <= L.s.length) { setTimeout(type, 22); }
+            else { li++; setTimeout(nextLine, 260); }
+          })();
+        } else {
+          span.textContent = L.s; li++; setTimeout(nextLine, 360);
+        }
+      }
+      nextLine();
+    }
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { run(); io.disconnect(); } }); }, { threshold: 0.4 });
+      io.observe(el);
+    } else { run(); }
+  })();
+</script>
+</body>
+</html>
