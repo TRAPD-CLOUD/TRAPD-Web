@@ -44,9 +44,6 @@
 
   :root {
     --paper: #f6f5f1;            /* warm off-white — the Anthropic nod */
-    --cream: #f0eee6;           /* the warm header bar (Anthropic ivory) */
-    --hairline: #e4e1d8;        /* warm hairline on cream */
-    --clay: #b85533;            /* rust/clay accent (Anthropic book-cloth) */
     --ink: #0e0e0e;             /* near-black band */
     --blue: oklch(0.62 0.19 260);
     --line: var(--border);
@@ -122,113 +119,49 @@
   .btn-sm { height: 38px; padding: 0 16px; font-size: 0.9rem; }
 
   /* ============================================================
-     NAV — Anthropic-style: a calm, solid warm-ivory bar with clean
-     links, one mega-menu dropdown, and a rounded dark CTA. No collapse.
+     NAV — transparent, with no background of its own. It adapts to
+     whatever scrolls behind it via mix-blend-mode, and never changes
+     state on scroll (no solid bar, no collapse, no progress).
      ============================================================ */
   header.nav {
     position: fixed; inset: 0 0 auto 0; z-index: 50;
-    background: var(--cream);
-    border-bottom: 1px solid var(--hairline);
-    transition: box-shadow .3s ease, border-color .3s ease;
+    mix-blend-mode: difference;        /* white content auto-inverts against the backdrop */
+    pointer-events: none;              /* empty bar area never traps clicks */
   }
-  header.nav.scrolled { box-shadow: 0 10px 30px -22px rgba(40,30,20,.45); }
-
+  header.nav a, header.nav button { pointer-events: auto; }
   .nav-inner {
     max-width: var(--maxw); margin: 0 auto; padding: 0 28px;
-    height: 66px; display: flex; align-items: center; gap: 30px;
+    height: 74px; display: flex; align-items: center; gap: 30px;
   }
-  .brand { display: flex; align-items: center; gap: 11px; flex-shrink: 0; }
-  .brand .mark { width: 30px; height: 30px; }
-  .brand .mark-light { display: none; }            /* light header → dark mark only */
-  .brand .word { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.18em; color: var(--ink); }
+  .brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .brand .mark { width: 34px; height: 34px; }
+  .brand .word { font-weight: 700; font-size: 1.15rem; letter-spacing: 0.18em; color: #fff; }
 
-  /* ---- primary links ---- */
+  /* ---- links: plain white; the blend mode handles contrast everywhere ---- */
   .nav-links { display: flex; align-items: center; gap: 2px; }
-  .nav-links > .nav-item > a,
-  .nav-links > a {
-    position: relative; display: inline-flex; align-items: center; gap: 6px;
-    font-size: 0.94rem; font-weight: 500; color: #4a463f;
-    padding: 9px 13px; border-radius: var(--radius-md);
-    transition: color .16s ease, background .16s ease;
+  .nav-links a {
+    font-size: 0.94rem; font-weight: 500; color: #fff; opacity: .8;
+    padding: 8px 12px; transition: opacity .16s ease;
   }
-  .nav-links > .nav-item > a:hover,
-  .nav-links > a:hover { color: var(--ink); background: rgba(20,14,8,.05); }
-  .nav-links a.active { color: var(--ink); }
-  .nav-links > .nav-item > a.active::after,
-  .nav-links > a.active::after {
-    content: ""; position: absolute; left: 13px; right: 13px; bottom: 4px; height: 2px;
-    background: var(--clay); border-radius: 2px;
-    transform-origin: 50% 50%; animation: underline-in .3s cubic-bezier(.4,0,.2,1);
-  }
-  @keyframes underline-in { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
-  .nav-trigger .caret { width: 13px; height: 13px; transition: transform .25s ease; }
+  .nav-links a:hover { opacity: 1; }
 
-  /* ---- mega-menu dropdown (Platform) ---- */
-  .nav-item { position: relative; }
-  .nav-menu {
-    position: absolute; top: calc(100% + 9px); left: -6px;
-    width: 470px; padding: 9px;
-    background: #fffdf8; border: 1px solid var(--hairline); border-radius: var(--radius-xl);
-    box-shadow: 0 28px 56px -28px rgba(40,30,20,.5);
-    display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
-    opacity: 0; visibility: hidden; transform: translateY(6px);
-    transition: opacity .2s ease, transform .2s ease, visibility .2s;
-    z-index: 60;
-  }
-  .nav-item:hover > .nav-menu,
-  .nav-item:focus-within > .nav-menu,
-  .nav-menu.open { opacity: 1; visibility: visible; transform: none; }
-  .nav-item:hover .nav-trigger .caret,
-  .nav-item:focus-within .nav-trigger .caret { transform: rotate(180deg); }
-  .nav-menu a {
-    display: flex; gap: 12px; padding: 11px 12px; border-radius: var(--radius-md);
-    transition: background .15s ease;
-  }
-  .nav-menu a:hover { background: var(--cream); }
-  .nav-menu .mi-ico { width: 18px; height: 18px; color: var(--ink); margin-top: 1px; flex-shrink: 0; stroke-width: 1.7; }
-  .nav-menu .mi-t { font-size: 0.9rem; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 7px; line-height: 1.1; }
-  .nav-menu .mi-d { font-size: 0.78rem; color: var(--muted-foreground); line-height: 1.4; margin-top: 3px; }
-  .nav-menu .mi-dot { width: 6px; height: 6px; border-radius: 999px; flex-shrink: 0; }
-  .mi-dot.s-live { background: var(--status-ok); }
-  .mi-dot.s-prog { background: var(--status-warn); }
-  .mi-dot.s-plan { background: var(--status-offline); }
-
-  /* ---- right cluster ---- */
-  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-  .nav-right .link {
-    font-size: 0.94rem; font-weight: 500; color: #4a463f; padding: 9px 12px;
-    border-radius: var(--radius-md); white-space: nowrap;
-    transition: color .16s ease, background .16s ease;
-  }
-  .nav-right .link:hover { color: var(--ink); background: rgba(20,14,8,.05); }
-  .nav-cta {
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+  .nav-right .link, .nav-cta {
     display: inline-flex; align-items: center; gap: 8px;
-    height: 40px; padding: 0 18px; border-radius: 999px;
-    background: var(--ink); color: #fafafa;
-    font-size: 0.92rem; font-weight: 500; white-space: nowrap;
-    transition: background .18s ease, transform .18s ease;
+    font-size: 0.94rem; font-weight: 500; color: #fff; opacity: .8;
+    padding: 8px 12px; white-space: nowrap; transition: opacity .16s ease;
   }
+  .nav-right .link:hover, .nav-cta:hover { opacity: 1; }
+  .nav-cta { font-weight: 600; }
   .nav-cta svg { width: 16px; height: 16px; }
-  .nav-cta:hover { background: #2b2622; transform: translateY(-1px); }
 
-  /* ---- scroll-progress bar (rides the bottom edge of the bar) ---- */
-  .nav-progress {
-    position: absolute; left: 0; bottom: -1px; height: 2px; width: 100%;
-    transform: scaleX(0); transform-origin: 0 50%;
-    background: var(--clay); opacity: 0; transition: opacity .25s ease;
-    will-change: transform;
-  }
-  header.nav.scrolled .nav-progress { opacity: 1; }
-
-  /* ---- mobile toggle (hamburger → X) ---- */
+  /* ---- mobile toggle (hamburger → X), white + blended ---- */
   .nav-toggle {
     display: none; margin-left: auto;
     width: 42px; height: 42px; padding: 0; border: 0; background: transparent; cursor: pointer;
-    align-items: center; justify-content: center; color: var(--ink);
-    border-radius: var(--radius-md); transition: background .18s ease;
+    align-items: center; justify-content: center; color: #fff;
   }
-  .nav-toggle:hover { background: rgba(20,14,8,.05); }
-  .nav-toggle .bars { position: relative; width: 20px; height: 14px; }
+  .nav-toggle .bars { position: relative; width: 22px; height: 14px; }
   .nav-toggle .bars span {
     position: absolute; left: 0; width: 100%; height: 2px; background: currentColor; border-radius: 2px;
     transition: transform .32s cubic-bezier(.4,0,.2,1), opacity .2s ease;
@@ -240,30 +173,52 @@
   body.menu-open .nav-toggle .bars span:nth-child(2) { opacity: 0; }
   body.menu-open .nav-toggle .bars span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-  /* ---- mobile menu panel (slides down, same warm ivory) ---- */
+  /* ---- mobile menu panel (solid dark overlay) ---- */
   .mobile-menu {
     position: fixed; inset: 0 0 auto 0; z-index: 45;
-    background: var(--cream); color: var(--ink);
-    padding: 84px 28px 30px;
+    background: var(--ink); color: #fafafa;
+    padding: 92px 28px 32px;
     transform: translateY(-101%);
     transition: transform .44s cubic-bezier(.4,0,.2,1);
-    border-bottom: 1px solid var(--hairline);
-    box-shadow: 0 30px 60px -30px rgba(40,30,20,.45);
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    box-shadow: 0 30px 60px -30px rgba(0,0,0,.8);
     display: none; flex-direction: column;
   }
   body.menu-open .mobile-menu { transform: translateY(0); }
   .mobile-menu a.mm-link {
     font-size: 1.12rem; font-weight: 500; padding: 15px 2px;
-    border-bottom: 1px solid var(--hairline);
-    color: #4a463f; transition: color .15s ease, padding-left .25s ease;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    color: rgba(255,255,255,.8); transition: color .15s ease, padding-left .25s ease;
   }
-  .mobile-menu a.mm-link:hover, .mobile-menu a.mm-link.active { color: var(--ink); padding-left: 8px; }
-  .mobile-menu a.mm-link.active { color: var(--clay); }
+  .mobile-menu a.mm-link:hover { color: #fff; padding-left: 8px; }
   .mm-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
-  .mm-actions .nav-cta { flex: 1 1 auto; justify-content: center; height: 46px; }
+  .mm-cta {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    flex: 1 1 auto; height: 46px; border-radius: var(--radius-md);
+    background: #fafafa; color: #0e0e0e; font-weight: 600; font-size: 0.95rem;
+  }
+  .mm-cta svg { width: 17px; height: 17px; }
 
   /* anchor targets clear the fixed header when jumped to */
-  [id] { scroll-margin-top: 84px; }
+  [id] { scroll-margin-top: 90px; }
+
+  /* ============================================================
+     BACK TO TOP — appears once you're deep in the page
+     ============================================================ */
+  .to-top {
+    position: fixed; right: 24px; bottom: 24px; z-index: 60;
+    width: 48px; height: 48px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.15);
+    background: var(--ink); color: #fafafa; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 14px 30px -12px rgba(0,0,0,.5);
+    opacity: 0; visibility: hidden; transform: translateY(12px) scale(.9);
+    transition: opacity .3s ease, transform .3s ease, visibility .3s, background .18s ease;
+  }
+  .to-top.show { opacity: 1; visibility: visible; transform: none; }
+  .to-top:hover { background: #2b2622; transform: translateY(-2px); }
+  .to-top svg { width: 20px; height: 20px; }
+  @media (max-width: 680px) { .to-top { right: 16px; bottom: 16px; width: 46px; height: 46px; } }
 
   /* ============================================================
      HERO
@@ -522,42 +477,11 @@
 <header class="nav" id="nav">
   <div class="nav-inner">
     <a class="brand" href="#top" aria-label="TRAPD home">
-      <img class="mark mark-dark" src="assets/logo_black.svg" alt="" width="30" height="30" />
+      <img class="mark" src="assets/logo_white.svg" alt="" width="34" height="34" />
       <span class="word">TRAPD</span>
     </a>
     <nav class="nav-links" aria-label="Primary">
-      <div class="nav-item">
-        <a class="nav-trigger" href="#platform" aria-haspopup="true" aria-expanded="false">
-          Platform
-          <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-        </a>
-        <div class="nav-menu" role="menu" aria-label="Platform modules">
-          <a href="#capabilities" role="menuitem">
-            <svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
-            <div><div class="mi-t">Endpoint Protection<span class="mi-dot s-prog"></span></div><div class="mi-d">Real-time EDR across Windows, Linux and macOS.</div></div>
-          </a>
-          <a href="#capabilities" role="menuitem">
-            <svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62a10 10 0 1 0 19.42 0"/><circle cx="12" cy="12" r="3"/><path d="m12 12 5-3"/></svg>
-            <div><div class="mi-t">Detections (SIEM)<span class="mi-dot s-prog"></span></div><div class="mi-d">Rules mapped to MITRE ATT&amp;CK, versioned as code.</div></div>
-          </a>
-          <a href="#capabilities" role="menuitem">
-            <svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16a4 4 0 0 0-8 0"/><path d="M5 8a7 7 0 0 1 14 0"/><path d="M3 12a9 9 0 0 1 18 0"/><circle cx="12" cy="11" r="1"/></svg>
-            <div><div class="mi-t">Identity Protection<span class="mi-dot s-plan"></span></div><div class="mi-d">Catch MFA bypass, Kerberoasting, lateral movement.</div></div>
-          </a>
-          <a href="#capabilities" role="menuitem">
-            <svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0 0-9 6 6 0 0 0-11.6-2A4.5 4.5 0 0 0 6.5 19z"/></svg>
-            <div><div class="mi-t">Cloud Security<span class="mi-dot s-plan"></span></div><div class="mi-d">Posture &amp; runtime for AWS, GCP and Azure.</div></div>
-          </a>
-          <a href="#capabilities" role="menuitem">
-            <svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
-            <div><div class="mi-t">SOAR Platform<span class="mi-dot s-plan"></span></div><div class="mi-d">No-code playbooks to automate triage &amp; response.</div></div>
-          </a>
-          <a href="#capabilities" role="menuitem">
-            <svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.142 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.142 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/></svg>
-            <div><div class="mi-t">Intelligence Hub<span class="mi-dot s-plan"></span></div><div class="mi-d">IOC feeds &amp; threat-intel enrichment on every alert.</div></div>
-          </a>
-        </div>
-      </div>
+      <a href="#platform">Platform</a>
       <a href="#capabilities">Capabilities</a>
       <a href="#principles">Principles</a>
       <a href="#integrations">Integrations</a>
@@ -572,7 +496,6 @@
       <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
   </div>
-  <div class="nav-progress" id="navProgress" aria-hidden="true"></div>
 </header>
 
 <!-- ============================ MOBILE MENU ============================ -->
@@ -585,7 +508,7 @@
   <a class="mm-link" href="#">Docs</a>
   <a class="mm-link" href="#">Sign in</a>
   <div class="mm-actions">
-    <a class="nav-cta" href="#start"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>Star on GitHub</a>
+    <a class="mm-cta" href="#start"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>Star on GitHub</a>
   </div>
 </nav>
 
@@ -919,39 +842,32 @@
   </div>
 </footer>
 
+<!-- ============================ BACK TO TOP ============================ -->
+<button class="to-top" id="toTop" type="button" aria-label="Back to top" title="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
+</button>
+
 <script>
   document.documentElement.classList.add('js');
 
-  /* ---- nav elevation on scroll + scroll-progress bar (rAF-throttled) ---- */
+  /* ---- back-to-top button: shows once you're deep in the page (rAF-throttled) ---- */
   (function () {
-    var nav = document.getElementById('nav');
-    var bar = document.getElementById('navProgress');
+    var btn = document.getElementById('toTop');
+    if (!btn) return;
     var ticking = false;
     function update() {
       ticking = false;
       var y = window.scrollY || window.pageYOffset;
-      nav.classList.toggle('scrolled', y > 8);
-      var docH = document.documentElement.scrollHeight - window.innerHeight;
-      var p = docH > 0 ? Math.min(1, Math.max(0, y / docH)) : 0;
-      bar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+      btn.classList.toggle('show', y > window.innerHeight * 1.2);
     }
     function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
     update();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
-  })();
-
-  /* ---- desktop dropdown (Platform mega-menu) — sync aria, Esc to close ---- */
-  (function () {
-    var item = document.querySelector('.nav-links .nav-item');
-    if (!item) return;
-    var trigger = item.querySelector('.nav-trigger');
-    function setExpanded(v) { trigger.setAttribute('aria-expanded', v ? 'true' : 'false'); }
-    item.addEventListener('mouseenter', function () { setExpanded(true); });
-    item.addEventListener('mouseleave', function () { setExpanded(false); });
-    item.addEventListener('focusin', function () { setExpanded(true); });
-    item.addEventListener('focusout', function (e) { if (!item.contains(e.relatedTarget)) setExpanded(false); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { setExpanded(false); if (document.activeElement && item.contains(document.activeElement)) document.activeElement.blur(); } });
+    btn.addEventListener('click', function () {
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
   })();
 
   /* ---- scroll reveals (single blocks + staggered grids) ---- */
@@ -971,31 +887,6 @@
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     els.forEach(function (e) { io.observe(e); });
-  })();
-
-  /* ---- scroll-spy: highlight the nav link for the section in view ---- */
-  (function () {
-    if (!('IntersectionObserver' in window)) return;
-    var ids = ['platform', 'capabilities', 'principles', 'integrations', 'roadmap'];
-    var sections = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
-    var links = {};
-    document.querySelectorAll('.nav-links a, .mobile-menu a.mm-link').forEach(function (a) {
-      var href = a.getAttribute('href') || '';
-      if (href.charAt(0) === '#' && href.length > 1) { (links[href.slice(1)] = links[href.slice(1)] || []).push(a); }
-    });
-    var visible = {};
-    function setActive(id) {
-      Object.keys(links).forEach(function (key) {
-        links[key].forEach(function (a) { a.classList.toggle('active', key === id); });
-      });
-    }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { visible[en.target.id] = en.isIntersecting ? en.intersectionRatio : 0; });
-      var best = null, bestR = 0;
-      ids.forEach(function (id) { if (visible[id] > bestR) { bestR = visible[id]; best = id; } });
-      if (best) setActive(best);
-    }, { rootMargin: '-45% 0px -50% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] });
-    sections.forEach(function (s) { io.observe(s); });
   })();
 
   /* ---- mobile menu toggle ---- */
